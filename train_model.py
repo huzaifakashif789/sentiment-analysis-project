@@ -65,7 +65,7 @@ print("Model training completed!")
 print("\nStep 8: Making predictions...")
 y_pred = model.predict(X_test_tfidf)
 
-# Step 9: EVALUATION METRICS (YEH IMPORTANT HAI!)
+# Step 9: EVALUATION METRICS
 print("\n" + "="*50)
 print("STEP 9: MODEL EVALUATION METRICS")
 print("="*50)

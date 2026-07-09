@@ -39,14 +39,14 @@ with st.sidebar:
     st.header("About")
     st.info("""
     This app uses **Logistic Regression** model trained on Twitter US Airline Sentiment dataset.
-    
+
     **Model Performance:**
     - Accuracy: 79.34%
     - Precision: 76.87%
     - Recall: 68.22%
     - F1-Score: 71.39%
     """)
-    
+
     st.header("Example Texts")
     st.write("**Positive:** *I love this product! Amazing quality!*")
     st.write("**Negative:** *Worst service ever, very disappointed.*")
@@ -58,28 +58,28 @@ tab1, tab2 = st.tabs(["🔍 Single Text Analysis", "📁 Batch Analysis"])
 # TAB 1: Single Text Analysis
 with tab1:
     st.subheader("Enter your text below:")
-    
+
     user_input = st.text_area(
-        "", 
-        height=150, 
+        "",
+        height=150,
         placeholder="Write a tweet, review, or comment here...",
         key="single_input"
     )
-    
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         analyze_button = st.button("Analyze Sentiment", use_container_width=True)
-    
+
     if analyze_button and user_input:
         with st.spinner("Analyzing..."):
             try:
                 model, vectorizer = load_model()
-                
+
                 cleaned = clean_text(user_input)
                 features = vectorizer.transform([cleaned])
                 prediction = model.predict(features)[0]
                 probs = model.predict_proba(features)[0]
-                
+
                 # FIX: Handle both string and integer predictions
                 if isinstance(prediction, str):
                     if prediction.lower() == 'positive':
@@ -93,12 +93,12 @@ with tab1:
                     label_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
                     sentiment = label_map[prediction]
                     confidence = max(probs) * 100
-                
+
                 st.markdown("---")
                 st.subheader("Analysis Result")
-                
+
                 col1, col2 = st.columns([2, 1])
-                
+
                 with col1:
                     if sentiment == "Positive":
                         st.success(f"**Sentiment: Positive**")
@@ -107,10 +107,10 @@ with tab1:
                         st.error(f"**Sentiment: Negative**")
                     else:
                         st.warning(f"**Sentiment: Neutral**")
-                    
+
                     st.write(f"**Confidence:** {confidence:.1f}%")
                     st.progress(int(confidence))
-                
+
                 with col2:
                     st.write("**All probabilities:**")
                     if len(probs) == 3:
@@ -120,11 +120,11 @@ with tab1:
                     else:
                         for i, p in enumerate(probs):
                             st.write(f"- Class {i}: {p*100:.1f}%")
-                            
+
             except Exception as e:
                 st.error(f"Error: {e}")
                 st.info("Try restarting the app or check if model files exist.")
-    
+
     elif analyze_button and not user_input:
         st.warning("Please enter some text to analyze!")
 
@@ -132,37 +132,37 @@ with tab1:
 with tab2:
     st.subheader("Upload CSV file for batch analysis")
     st.markdown("CSV file should have a **'text'** column with the tweets/reviews.")
-    
+
     uploaded_file = st.file_uploader("Choose CSV file", type="csv")
-    
+
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.write("**Preview of uploaded data:**")
         st.dataframe(df.head())
-        
+
         if 'text' in df.columns:
             if st.button("Process Batch"):
                 with st.spinner("Processing all texts..."):
                     model, vectorizer = load_model()
                     label_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
-                    
+
                     results = []
                     for text in df['text']:
                         cleaned = clean_text(str(text))
                         features = vectorizer.transform([cleaned])
                         pred = model.predict(features)[0]
-                        
+
                         if isinstance(pred, str):
                             results.append(pred.capitalize())
                         else:
                             results.append(label_map[pred])
-                    
+
                     df['sentiment'] = results
-                    
+
                     st.success("Processing complete!")
                     st.write("**Results:**")
                     st.dataframe(df)
-                    
+
                     sentiment_counts = df['sentiment'].value_counts()
                     fig, ax = plt.subplots()
                     colors = {'Positive': 'green', 'Neutral': 'gray', 'Negative': 'red'}
@@ -172,7 +172,7 @@ with tab2:
                     ax.set_ylabel("Count")
                     ax.set_title("Sentiment Distribution")
                     st.pyplot(fig)
-                    
+
                     csv = df.to_csv(index=False)
                     st.download_button(
                         label="Download Results CSV",
@@ -181,7 +181,7 @@ with tab2:
                         mime="text/csv"
                     )
         else:
-            st.error("❌ CSV must have a 'text' column!")
+            st.error("! CSV must have a 'text' column!")
 
 st.markdown("---")
 st.markdown(
